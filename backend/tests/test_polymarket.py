@@ -40,10 +40,24 @@ async def test_normalize_market():
         "endDate": "2025-06-30T00:00:00Z",
         "category": "economics",
     }
-    try:
-        normalized = client.normalize(raw)
-        assert normalized["platform_contract_id"] == "abc123"
-        assert normalized["current_yes_price"] == 0.52
-        assert normalized["platform"] == "polymarket"
-    finally:
-        await client.close()
+    normalized = client.normalize(raw)
+    assert normalized["platform_contract_id"] == "abc123"
+    assert normalized["current_yes_price"] == 0.52
+    assert normalized["platform"] == "polymarket"
+    await client.close()
+
+@pytest.mark.asyncio
+async def test_normalize_market_empty_prices():
+    client = PolymarketClient()
+    raw = {
+        "id": "abc123",
+        "question": "Test?",
+        "outcomePrices": "[]",
+        "volume": "0",
+        "endDate": None,
+        "category": "other",
+    }
+    normalized = client.normalize(raw)
+    assert normalized["current_yes_price"] == 0.0
+    assert normalized["current_no_price"] == 0.0
+    await client.close()

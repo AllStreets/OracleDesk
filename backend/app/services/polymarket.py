@@ -35,13 +35,15 @@ class PolymarketClient:
             prices = json.loads(prices_raw)
         except (json.JSONDecodeError, TypeError):
             prices = [0, 0]
+        if not isinstance(prices, list) or len(prices) < 2:
+            prices = [0, 0]
         return {
             "platform": "polymarket",
             "platform_contract_id": raw["id"],
             "title": raw.get("question", ""),
             "category": raw.get("category", "other"),
-            "current_yes_price": float(prices[0]) if prices else None,
-            "current_no_price": float(prices[1]) if len(prices) > 1 else None,
+            "current_yes_price": float(prices[0]),
+            "current_no_price": float(prices[1]),
             "volume": int(float(raw.get("volume", 0))),
             "expiry_date": raw.get("endDate"),
         }
