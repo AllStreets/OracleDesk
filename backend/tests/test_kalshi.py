@@ -22,12 +22,14 @@ async def test_get_markets_returns_list():
     }
     mock_response.raise_for_status = MagicMock()
 
-    with patch.object(client._http, "get", new_callable=AsyncMock) as mock_get:
-        mock_get.return_value = mock_response
-        markets = await client.get_active_markets(category="economics")
-
-    assert len(markets) == 1
-    assert markets[0]["ticker"] == "FED-25JUN-T5.25"
+    try:
+        with patch.object(client._http, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+            markets = await client.get_active_markets(category="economics")
+        assert len(markets) == 1
+        assert markets[0]["ticker"] == "FED-25JUN-T5.25"
+    finally:
+        await client.close()
 
 @pytest.mark.asyncio
 async def test_get_market_history_returns_list():
@@ -40,9 +42,11 @@ async def test_get_market_history_returns_list():
     }
     mock_response.raise_for_status = MagicMock()
 
-    with patch.object(client._http, "get", new_callable=AsyncMock) as mock_get:
-        mock_get.return_value = mock_response
-        history = await client.get_market_history("FED-25JUN-T5.25", days=30)
-
-    assert len(history) == 1
-    assert history[0]["yes_price"] == 0.48
+    try:
+        with patch.object(client._http, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+            history = await client.get_market_history("FED-25JUN-T5.25", days=30)
+        assert len(history) == 1
+        assert history[0]["yes_price"] == 0.48
+    finally:
+        await client.close()
