@@ -81,6 +81,7 @@ async def record_prices():
                 "yes_price": c.current_yes_price,
                 "no_price": c.current_no_price,
                 "volume": c.volume,
+                "recorded_at": datetime.now(timezone.utc),
             }
             for c in contracts
         ]
