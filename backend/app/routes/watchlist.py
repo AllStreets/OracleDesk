@@ -63,11 +63,13 @@ async def remove_from_watchlist(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    await db.execute(
+    result = await db.execute(
         delete(Watchlist).where(
             Watchlist.id == watchlist_id,
             Watchlist.user_id == current_user.id,
         )
     )
     await db.commit()
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Watchlist entry not found")
     return {"status": "removed"}

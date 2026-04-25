@@ -14,9 +14,19 @@ router = APIRouter()
 
 @router.get("")
 async def list_contracts(db: AsyncSession = Depends(get_db)):
+    from sqlalchemy import func
+    subq = (
+        select(Analysis.contract_id, func.max(Analysis.created_at).label("latest"))
+        .group_by(Analysis.contract_id)
+        .subquery()
+    )
     result = await db.execute(
         select(Contract, Analysis)
-        .outerjoin(Analysis, Analysis.contract_id == Contract.id)
+        .outerjoin(subq, subq.c.contract_id == Contract.id)
+        .outerjoin(
+            Analysis,
+            (Analysis.contract_id == subq.c.contract_id) & (Analysis.created_at == subq.c.latest),
+        )
         .order_by(desc(Analysis.created_at))
         .limit(100)
     )
