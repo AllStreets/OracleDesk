@@ -15,4 +15,4 @@ class PriceHistory(Base):
     yes_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(5, 4), nullable=True)
     no_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(5, 4), nullable=True)
     volume: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    recorded_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    recorded_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)

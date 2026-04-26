@@ -22,4 +22,4 @@ class Analysis(Base):
     risk_factors: Mapped[Optional[Any]] = mapped_column(JSONB, nullable=True)
     data_sources: Mapped[Optional[Any]] = mapped_column(JSONB, nullable=True)
     agent_costs_usd: Mapped[Optional[Decimal]] = mapped_column(Numeric(8, 4), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)

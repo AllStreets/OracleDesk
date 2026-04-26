@@ -14,4 +14,4 @@ class User(Base):
     plan: Mapped[str] = mapped_column(String, nullable=False, default="free")
     hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
