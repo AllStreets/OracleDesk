@@ -234,16 +234,16 @@ function TerminalOutput({ agent, active }) {
   );
 }
 
+const ALL_DONE_STATUSES = { ingestion: "done", quant: "done", qualitative: "done", sentiment: "done", synthesis: "done" };
+const ALL_PENDING_STATUSES = { ingestion: "pending", quant: "pending", qualitative: "pending", sentiment: "pending", synthesis: "pending" };
+
 export default function AgentPipeline({ running, onComplete, onPhaseChange }) {
-  const [statuses, setStatuses] = useState({
-    ingestion: "pending", quant: "pending", qualitative: "pending",
-    sentiment: "pending", synthesis: "pending",
-  });
+  const [statuses, setStatuses] = useState(running ? ALL_PENDING_STATUSES : ALL_DONE_STATUSES);
   const [activeAgent, setActiveAgent] = useState(null);
-  const [phase, setPhase] = useState(0);
-  const [tokens, setTokens] = useState(0);
-  const [cost, setCost] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
+  const [phase, setPhase] = useState(running ? 0 : 3);
+  const [tokens, setTokens] = useState(running ? 0 : 4316);
+  const [cost, setCost] = useState(running ? 0 : 0.29);
+  const [elapsed, setElapsed] = useState(running ? 0 : 26.8);
   const startRef = useRef(null);
 
   const allDone = Object.values(statuses).every(s => s === "done");
@@ -311,16 +311,20 @@ export default function AgentPipeline({ running, onComplete, onPhaseChange }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-panel/60">
         <div className="flex items-center gap-2.5">
           <div className="flex gap-1.5">
-            {[1, 2, 3].map(p => (
-              <motion.div
-                key={p}
-                className={`w-2.5 h-2.5 rounded-full transition-colors duration-500 ${
-                  phase >= p ? "bg-positive" : running && phase === p - 1 ? "bg-accent animate-pulse" : "bg-muted/30"
-                }`}
-                animate={phase === p && !allDone ? { scale: [1, 1.3, 1] } : {}}
-                transition={{ duration: 0.4 }}
-              />
-            ))}
+            {[1, 2, 3].map(p => {
+              const isGreen = p === 3 ? allDone : phase >= p + 1;
+              const isPulsing = running && phase === p && !isGreen;
+              return (
+                <motion.div
+                  key={p}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-500 ${
+                    isGreen ? "bg-positive" : isPulsing ? "bg-accent animate-pulse" : "bg-muted/30"
+                  }`}
+                  animate={isPulsing ? { scale: [1, 1.3, 1] } : {}}
+                  transition={{ duration: 0.4 }}
+                />
+              );
+            })}
           </div>
           <span className="text-[11px] font-mono text-muted">
             oracle-desk / agent-pipeline

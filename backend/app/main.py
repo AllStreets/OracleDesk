@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,9 +13,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Oracle Desk API", version="1.0.0", lifespan=lifespan)
 
+_default_origins = "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176"
+_cors_origins = os.getenv("CORS_ORIGINS", _default_origins).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "https://yourdomain.com"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
