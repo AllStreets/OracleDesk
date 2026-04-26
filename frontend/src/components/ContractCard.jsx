@@ -1,35 +1,94 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import EVBadge from "./EVBadge";
+import ProbabilityBar from "./ProbabilityBar";
+import ConfidenceBadge from "./ConfidenceBadge";
 
-export default function ContractCard({ contract }) {
-  const { id, title, platform, category, current_yes_price, analysis, expiry_date } = contract;
-  const yesPrice = current_yes_price != null ? `${(current_yes_price * 100).toFixed(0)}c` : "N/A";
-  const fairValue = analysis?.fair_value_yes != null ? `${(analysis.fair_value_yes * 100).toFixed(0)}c` : null;
+const PLATFORM_STYLE = {
+  kalshi: { label: "KALSHI", color: "text-kalshi bg-kalshi/10 border-kalshi/20" },
+  polymarket: { label: "POLY", color: "text-polymarket bg-polymarket/10 border-polymarket/20" },
+};
+
+function formatVolume(v) {
+  if (!v) return null;
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M vol`;
+  if (v >= 1_000) return `$${(v / 1_000).toFixed(0)}K vol`;
+  return `$${v} vol`;
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const diff = new Date(dateStr) - new Date();
+  const days = Math.ceil(diff / 86400000);
+  if (days < 0) return "Expired";
+  if (days === 0) return "Expires today";
+  if (days <= 7) return `${days}d left`;
+  if (days <= 30) return `${Math.ceil(days / 7)}w left`;
+  return `${Math.ceil(days / 30)}mo left`;
+}
+
+export default function ContractCard({ contract, index = 0 }) {
+  const { id, title, platform, category, current_yes_price, analysis, expiry_date, volume } = contract;
+  const platformStyle = PLATFORM_STYLE[platform?.toLowerCase()] || { label: platform?.toUpperCase(), color: "text-muted bg-border border-border-2" };
+  const ev = analysis?.expected_value_yes;
+  const isPositiveEV = ev != null && ev > 0;
+  const expiry = daysUntil(expiry_date);
 
   return (
-    <Link to={`/contract/${id}`} className="block bg-panel border border-border rounded p-4 hover:border-accent transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted uppercase tracking-wider mb-1">{platform} / {category}</p>
-          <p className="text-sm text-white leading-snug">{title}</p>
-          {expiry_date && (
-            <p className="text-xs text-muted mt-1">Expires {new Date(expiry_date).toLocaleDateString()}</p>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <div className="text-right">
-            <span className="text-xs text-muted">Market </span>
-            <span className="text-sm font-bold text-white">{yesPrice}</span>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
+    >
+      <Link
+        to={`/contract/${id}`}
+        className="block bg-surface border border-border rounded-xl p-4 card-hover group"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)" }}
+      >
+        {/* Header row */}
+        <div className="flex items-center gap-2 mb-3">
+          <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${platformStyle.color}`}>
+            {platformStyle.label}
+          </span>
+          <span className="text-[10px] text-muted font-medium">{category}</span>
+          <div className="ml-auto flex items-center gap-2">
+            <ConfidenceBadge confidence={analysis?.confidence} />
           </div>
-          {fairValue && (
-            <div className="text-right">
-              <span className="text-xs text-muted">Fair value </span>
-              <span className="text-sm font-bold text-accent">{fairValue}</span>
+        </div>
+
+        {/* Title */}
+        <p className="text-sm font-medium text-white leading-snug mb-3 group-hover:text-blue-100 transition-colors line-clamp-2">
+          {title}
+        </p>
+
+        {/* Probability bar */}
+        <div className="mb-3">
+          <ProbabilityBar market={current_yes_price} fair={analysis?.fair_value_yes} />
+        </div>
+
+        {/* Stats row */}
+        <div className="flex items-center gap-3 text-[10px] font-mono">
+          <div>
+            <span className="text-muted">Market </span>
+            <span className="text-white font-semibold">
+              {current_yes_price != null ? `${Math.round(current_yes_price * 100)}c` : "N/A"}
+            </span>
+          </div>
+          {analysis?.fair_value_yes != null && (
+            <div>
+              <span className="text-muted">Fair </span>
+              <span className="text-accent font-semibold">{Math.round(analysis.fair_value_yes * 100)}c</span>
             </div>
           )}
-          <EVBadge ev={analysis?.expected_value_yes} />
+          {volume && <span className="text-muted">{formatVolume(volume)}</span>}
+          {expiry && (
+            <span className={`ml-auto ${parseInt(expiry) <= 7 ? "text-warning" : "text-muted"}`}>
+              {expiry}
+            </span>
+          )}
+          <EVBadge ev={ev} />
         </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 }

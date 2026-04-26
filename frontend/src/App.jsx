@@ -12,9 +12,9 @@ function AuthLayout({ children }) {
   const token = localStorage.getItem("oracle_token");
   if (!token) return <Navigate to="/" replace />;
   return (
-    <div className="min-h-screen bg-surface text-white font-mono">
+    <div className="min-h-screen bg-bg text-white font-sans">
       <Navbar />
-      <main className="max-w-7xl mx-auto px-4 py-6">{children}</main>
+      <main>{children}</main>
       <Disclaimer />
     </div>
   );
